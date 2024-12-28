@@ -17,7 +17,7 @@ namespace SRTPluginProviderAlice
 
         // Pointers
         private IntPtr BaseAddress { get; set; }
-        private MultilevelPointer PointerGroupSquad { get; set; }
+        private MultilevelPointer PointerGroupFightZone { get; set; }
 
         internal GameMemoryAliceScanner(Process? process = null)
         {
@@ -40,28 +40,31 @@ namespace SRTPluginProviderAlice
             {
                 BaseAddress = process?.MainModule?.BaseAddress ?? IntPtr.Zero;
 
-                PointerGroupSquad = new MultilevelPointer(memoryAccess, (IntPtr)(BaseAddress + 0x44B8A8), 0x8C, 0x4, 0x30, 0x18);
+                PointerGroupFightZone = new MultilevelPointer(memoryAccess, (IntPtr)(BaseAddress + 0x44B8A8), 0x8C, 0x4, 0x30);
             }
         }
 
         internal void UpdatePointers()
         {
-            PointerGroupSquad.UpdatePointers();
+            PointerGroupFightZone.UpdatePointers();
         }
 
         private unsafe void UpdateEnemies()
         {
             List<CKHkAliceEnemy> enemies = new();
-            CKGrpSquad squad = PointerGroupSquad.Deref<CKGrpSquad>(0x0);
-            IntPtr enemyPtr = squad.FirstEnemy;
-            while (enemyPtr != IntPtr.Zero)
+            CKGrpFightZone fightZone = PointerGroupFightZone.Deref<CKGrpFightZone>(0x0);
+            IntPtr squadPtr = fightZone.FirstSquad;
+            while (squadPtr != IntPtr.Zero)
             {
-                byte enemyType = memoryAccess.GetByteAt((IntPtr)(enemyPtr + 0x6C));
-                float health = memoryAccess.GetFloatAt((IntPtr)(enemyPtr + 0x3D0));
-                CKHkAliceEnemy enemy = new(enemyType, health);
-                enemies.Add(enemy);
-                // Offset 0x14 is equivalent of "next"
-                enemyPtr = (IntPtr)memoryAccess.GetIntAt((IntPtr)(enemyPtr + 0x14));
+                CKGrpSquad squad = memoryAccess.GetAt<CKGrpSquad>(squadPtr);
+                IntPtr enemyPtr = squad.FirstEnemy;
+                while (enemyPtr != IntPtr.Zero)
+                {
+                    CKHkAliceEnemy enemy = memoryAccess.GetAt<CKHkAliceEnemy>(enemyPtr);
+                    enemies.Add(enemy);
+                    enemyPtr = (IntPtr)enemy._nextEnemy;
+                }
+                squadPtr = squad.NextSquad;
             }
 
             gameMemoryValues.Enemies = enemies;
