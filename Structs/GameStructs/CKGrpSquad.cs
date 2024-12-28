@@ -10,7 +10,7 @@ namespace SRTPluginProviderAlice.Structs.GameStructs
         Tank = 2,
         Fortress = 3,
         Sniffer = 4,
-        // ? BlackKnight = 5,
+        // ? BlackKnight = 5, <- this is just an assumption and needs checked
         Stayne = 6
     }
 
@@ -41,16 +41,6 @@ namespace SRTPluginProviderAlice.Structs.GameStructs
             EnemyType.Sniffer => 151f,
             EnemyType.Stayne => 1500f,
             _ => 201f
-        };
-        public readonly string EnemyTypeName => EnemyType switch
-        {
-            EnemyType.Spearman => "Spearman",
-            EnemyType.Archer => "Archer",
-            EnemyType.Tank => "Tank",
-            EnemyType.Fortress => "Fortress",
-            EnemyType.Sniffer => "Sniffer",
-            EnemyType.Stayne => "Stayne",
-            _ => "Unknown"
         };
         public readonly float Percentage => CurrentHealth == 0f ? 0f : (CurrentHealth / MaxHealth) * 100;
         public readonly bool IsAlive => CurrentHealth > 0f;
