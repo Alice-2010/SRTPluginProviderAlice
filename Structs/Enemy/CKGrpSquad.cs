@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace SRTPluginProviderAlice.Structs.GameStructs
+namespace SRTPluginProviderAlice.Structs.Enemy
 {
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 0x1D0)]
     public readonly struct CKGrpSquad

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace SRTPluginProviderAlice.Structs.GameStructs
+namespace SRTPluginProviderAlice.Structs.Enemy
 {
     public enum EnemyType : byte
     {
