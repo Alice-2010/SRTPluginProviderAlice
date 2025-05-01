@@ -1,0 +1,62 @@
+﻿name: Build
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      working-directory: .
+      project-name: SRTPluginProviderAlice
+      platform: x86
+      configuration: Release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      # Checkout latest dependencies code
+      - name: Checkout SRTHost
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: SRTHost
+          repository: SpeedRunTool/SRTHost
+      - name: Move SRTHost to match path in ${{ env.project-name }}.sln
+        run: Move-Item -Path SRTHost -Destination ..\
+      # Install .NET
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      # Compiles the plugin
+      - name: Compile the plugin
+        run: |
+          dotnet build ${{ env.project-name }}.sln -c "${{ env.configuration }}" /p:Platform="${{ env.platform }}"
+      - name: Zip the Artifacts
+        run: |
+          New-Item -Name "build" -ItemType "Directory"
+          New-Item -Name "build/ref" -ItemType "Directory"
+
+          Add-Type -assembly 'System.IO.Compression'
+          Add-Type -assembly 'System.IO.Compression.FileSystem'
+          [System.IO.Compression.ZipArchive]$zipFile = [System.IO.Compression.ZipFile]::Open('${{ env.project-name }}.zip', ([System.IO.Compression.ZipArchiveMode]::Create))
+
+          Copy-Item -Path bin/${{ env.platform }}/${{ env.configuration }}/netstandard2.1/${{ env.project-name }}.dll -Destination build/${{ env.project-name }}.dll
+          Copy-Item -Path bin/${{ env.platform }}/${{ env.configuration }}/netstandard2.1/${{ env.project-name }}.deps.json -Destination build/${{ env.project-name }}.deps.json
+          Copy-Item -Path bin/${{ env.platform }}/${{ env.configuration }}/netstandard2.1/ProcessMemory32.dll -Destination build/ProcessMemory32.dll
+          Copy-Item -Path obj/${{ env.platform }}/${{ env.configuration }}/netstandard2.1/${{ env.project-name }}.dll -Destination build/ref/${{ env.project-name }}.dll
+          
+          foreach ($fileToZip in (Get-ChildItem -Path build -File -Recurse).FullName) {
+             $fileNameInZip = $fileToZip.Replace(($pwd.Path + '\build\'),'')
+             [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zipFile, $fileToZip, $fileNameInZip)
+          }
+
+          $zipFile.Dispose()
+          
+      # Publish zipped artifacts
+      - name: Upload publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.project-name }}.zip
+          name: ${{ env.project-name }}
+          if-no-files-found: error

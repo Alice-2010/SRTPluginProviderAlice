@@ -9,7 +9,7 @@ namespace SRTPluginProviderAlice
         public string Name => "Game Memory Provider (Alice in Wonderland)";
         public string Description => "A game memory provider plugin for Alice in Wonderland (2010).";
         public string Author => "DeathHound6";
-        public Uri MoreInfoURL => new("https://github.com/Alice-2010/SRTPluginProviderAlice");
+        public Uri MoreInfoURL => new Uri("https://github.com/Alice-2010/SRTPluginProviderAlice");
         public int VersionMajor
         {
             get

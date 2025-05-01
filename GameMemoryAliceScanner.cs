@@ -15,7 +15,7 @@ namespace SRTPluginProviderAlice
         private GameVersion gameVersion;
         public bool HasScanned;
         public bool ProcessRunning => memoryAccess != null && memoryAccess.ProcessRunning;
-        public int ProcessExitCode => (memoryAccess != null) ? memoryAccess.ProcessExitCode : 0;
+        public uint ProcessExitCode => (memoryAccess != null) ? memoryAccess.ProcessExitCode : 0;
 
         // Pointers
         private IntPtr BaseAddress { get; set; }
@@ -40,7 +40,7 @@ namespace SRTPluginProviderAlice
             if (gameVersion == GameVersion.Unknown)
                 return;
 
-            int pid = process.Id;
+            uint pid = (uint)process.Id;
             memoryAccess = new ProcessMemoryHandler(pid);
             if (ProcessRunning)
             {
@@ -48,7 +48,7 @@ namespace SRTPluginProviderAlice
 
                 // TODO: Add Dolphin support
                 // TODO: Add DVDROM support?
-                PointerGameManager = new MultilevelPointer(memoryAccess, (IntPtr)(BaseAddress + 0x44B8A8), 0x8C);
+                PointerGameManager = new MultilevelPointer(memoryAccess, (nint*)(BaseAddress + 0x44B8A8), 0x8C);
             }
         }
 
@@ -60,10 +60,10 @@ namespace SRTPluginProviderAlice
         private unsafe void UpdateGeneralInfo()
         {
             CKAliceGameManager gameManager = PointerGameManager.Deref<CKAliceGameManager>(0x0);
-            this.level = memoryAccess.GetAt<CKLevel>((IntPtr)gameManager._level);
-            this.gameStructure = memoryAccess.GetAt<CKAliceGameStructure>((IntPtr)gameManager._structure);
-            this.heroGroup = memoryAccess.GetAt<CKGrpAliceHero>((IntPtr)gameManager._heroGroup);
-            this.enemyGroup = memoryAccess.GetAt<CKGrpAliceEnemy>((IntPtr)gameManager._enemyGroup);
+            this.level = memoryAccess.GetAt<CKLevel>((nint*)gameManager._level);
+            this.gameStructure = memoryAccess.GetAt<CKAliceGameStructure>((nint*)gameManager._structure);
+            this.heroGroup = memoryAccess.GetAt<CKGrpAliceHero>((nint*)gameManager._heroGroup);
+            this.enemyGroup = memoryAccess.GetAt<CKGrpAliceEnemy>((nint*)gameManager._enemyGroup);
 
             gameMemoryValues.Map = gameManager.MapType;
             gameMemoryValues.Sector = this.level.Sector;
@@ -72,15 +72,15 @@ namespace SRTPluginProviderAlice
 
         private unsafe void UpdatePlayers()
         {
-            IntPtr extraHealthItemPtr = memoryAccess.GetAt<IntPtr>(this.gameStructure.InventoryItemsList);
-            CKAliceInventoryItem extraHealthItem = memoryAccess.GetAt<CKAliceInventoryItem>(extraHealthItemPtr);
-            CKGameLevelCollectible collectible = memoryAccess.GetAt<CKGameLevelCollectible>(extraHealthItem.GameLevelCollectible);
+            IntPtr extraHealthItemPtr = memoryAccess.GetAt<IntPtr>((void*)this.gameStructure.InventoryItemsList);
+            CKAliceInventoryItem extraHealthItem = memoryAccess.GetAt<CKAliceInventoryItem>((void*)extraHealthItemPtr);
+            CKGameLevelCollectible collectible = memoryAccess.GetAt<CKGameLevelCollectible>((void*)extraHealthItem.GameLevelCollectible);
             float maxHealth = collectible.Collected && collectible.Bought ? 200 : 100;
             List<AliceHero> players = new();
             IntPtr heroPtr = this.heroGroup.FirstPlayer;
             while (heroPtr != IntPtr.Zero)
             {
-                CKHkAliceHero hero = memoryAccess.GetAt<CKHkAliceHero>(heroPtr);
+                CKHkAliceHero hero = memoryAccess.GetAt<CKHkAliceHero>((void*)heroPtr);
                 AliceHero aliceHero = new(hero);
                 if (hero.HeroNumber == HeroNumber.Player1 || hero.HeroNumber == HeroNumber.Player2)
                 {
@@ -97,15 +97,15 @@ namespace SRTPluginProviderAlice
         private unsafe void UpdateEnemies()
         {
             List<CKHkAliceEnemy> enemies = new();
-            CKGrpFightZone fightZone = memoryAccess.GetAt<CKGrpFightZone>(this.enemyGroup.FightZone);
+            CKGrpFightZone fightZone = memoryAccess.GetAt<CKGrpFightZone>((void*)this.enemyGroup.FightZone);
             IntPtr squadPtr = fightZone.FirstSquad;
             while (squadPtr != IntPtr.Zero)
             {
-                CKGrpSquad squad = memoryAccess.GetAt<CKGrpSquad>(squadPtr);
+                CKGrpSquad squad = memoryAccess.GetAt<CKGrpSquad>((void*)squadPtr);
                 IntPtr enemyPtr = squad.FirstEnemy;
                 while (enemyPtr != IntPtr.Zero)
                 {
-                    CKHkAliceEnemy enemy = memoryAccess.GetAt<CKHkAliceEnemy>(enemyPtr);
+                    CKHkAliceEnemy enemy = memoryAccess.GetAt<CKHkAliceEnemy>((void*)enemyPtr);
                     enemies.Add(enemy);
                     enemyPtr = (IntPtr)enemy._nextEnemy;
                 }

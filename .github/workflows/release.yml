@@ -1,0 +1,70 @@
+﻿name: Release
+on:
+  workflow_dispatch:
+    inputs:
+         runId:
+           description: "Github Workflow run ID - used to upload zip file in release"
+           required: true
+           type: string
+         releaseNotes:
+           description: "Release notes for this version"
+           required: true
+           type: string
+         prerelease:
+           description: "Is this a pre-release?"
+           required: true
+           default: false
+           type: boolean
+
+permissions:
+  contents: write
+ 
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      project-name: SRTPluginProviderAlice
+    steps:
+      # Download the artifact zip
+      - name: Download all artifacts
+        id: artifact-path
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.runId }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .
+      # Get version from DLL assembly info
+      - name: Get DLL Version
+        id: get-version
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          # Why TF is the zip file in a subfolder? GH workflow artifacts are weird asf
+          [System.IO.Compression.ZipFile]::ExtractToDirectory('${{ steps.artifact-path.outputs.download-path }}\${{ env.project-name }}\${{ env.project-name }}.zip', 'build')
+          $fileVersion = (Get-Item .\build\${{ env.project-name }}.dll).VersionInfo.FileVersion
+          echo "File version: $fileVersion"
+          echo "::set-output name=Version::$fileVersion"
+      - uses: mukunku/tag-exists-action@v1.6.0
+        id: check-tag
+        with: 
+          tag: "${{ steps.get-version.outputs.Version }}"
+      - name: Check version
+        if: steps.check-tag.outputs.tag_exists == 'true'
+        run: |
+          echo "Version ${{ steps.get-version.outputs.Version }} already exists. Please update the version in AssemblyInfo.cs and try again."
+          exit 1
+      # Pushes the release
+      - name: Publish release
+        uses: "softprops/action-gh-release@v2"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          body: "${{ inputs.releaseNotes }}"
+          generate_release_notes: true
+          append_body: true
+          make_latest: true
+          prerelease: ${{ inputs.prerelease }}
+          tag_name: "${{ steps.get-version.outputs.Version }}"
+          name: "v${{ steps.get-version.outputs.Version }}"
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.artifact-path.outputs.download-path }}\${{ env.project-name }}\${{ env.project-name }}.zip

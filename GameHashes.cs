@@ -19,7 +19,7 @@ namespace SRTPluginProviderAlice
                 return GameVersion.Unknown;
             byte[] checksum;
             using SHA256 hashFunc = SHA256.Create();
-            using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             checksum = hashFunc.ComputeHash(fs);
 
             if (checksum.SequenceEqual(alice_steam_2183777722952251792))
