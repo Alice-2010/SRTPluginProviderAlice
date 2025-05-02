@@ -64,10 +64,11 @@ namespace SRTPluginProviderAlice
             this.gameStructure = memoryAccess.GetAt<CKAliceGameStructure>((nint*)gameManager._structure);
             this.heroGroup = memoryAccess.GetAt<CKGrpAliceHero>((nint*)gameManager._heroGroup);
             this.enemyGroup = memoryAccess.GetAt<CKGrpAliceEnemy>((nint*)gameManager._enemyGroup);
+            CKAlicePlayer player = memoryAccess.GetAt<CKAlicePlayer>((nint*)gameManager._player2);
 
             gameMemoryValues.Map = gameManager.MapType;
             gameMemoryValues.Sector = this.level.Sector;
-            
+            gameMemoryValues.GameTime = player.GameTime;
         }
 
         private unsafe void UpdatePlayers()

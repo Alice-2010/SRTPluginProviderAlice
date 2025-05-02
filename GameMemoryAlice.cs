@@ -38,6 +38,8 @@ namespace SRTPluginProviderAlice
         internal MapType _map;
         public int Sector { get => _sector; set => _sector = value; }
         internal int _sector;
+        public float GameTime { get => _gameTime; set => _gameTime = value; }
+        internal float _gameTime;
         public List<AliceHero> Heroes { get => _heroes; set => _heroes = value; }
         internal List<AliceHero> _heroes;
         public List<CKHkAliceEnemy> Enemies { get => _enemies; set => _enemies = value; }
