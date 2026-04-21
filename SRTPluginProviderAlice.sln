@@ -5,7 +5,7 @@ VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTPluginProviderAlice", "SRTPluginProviderAlice.csproj", "{4A6F5567-1262-4C29-92B7-BF9467AF3767}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTPluginBase", "..\SRTHost\SRTPluginBase\SRTPluginBase.csproj", "{7E2FB061-FB33-433F-95F4-6341F3F111A4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTPluginBase", "..\SRTHost\SRTPluginBase\SRTPluginBase.csproj", "{0DB8241D-1753-695D-B025-E5512E5E7D22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{4A6F5567-1262-4C29-92B7-BF9467AF3767}.Debug|x86.Build.0 = Debug|x86
 		{4A6F5567-1262-4C29-92B7-BF9467AF3767}.Release|x86.ActiveCfg = Release|x86
 		{4A6F5567-1262-4C29-92B7-BF9467AF3767}.Release|x86.Build.0 = Release|x86
-		{7E2FB061-FB33-433F-95F4-6341F3F111A4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7E2FB061-FB33-433F-95F4-6341F3F111A4}.Debug|x86.Build.0 = Debug|Any CPU
-		{7E2FB061-FB33-433F-95F4-6341F3F111A4}.Release|x86.ActiveCfg = Release|Any CPU
-		{7E2FB061-FB33-433F-95F4-6341F3F111A4}.Release|x86.Build.0 = Release|Any CPU
+		{0DB8241D-1753-695D-B025-E5512E5E7D22}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0DB8241D-1753-695D-B025-E5512E5E7D22}.Debug|x86.Build.0 = Debug|Any CPU
+		{0DB8241D-1753-695D-B025-E5512E5E7D22}.Release|x86.ActiveCfg = Release|Any CPU
+		{0DB8241D-1753-695D-B025-E5512E5E7D22}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

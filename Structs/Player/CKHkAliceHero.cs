@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SRTPluginProviderAlice.Structs.Player
 {
@@ -26,16 +27,14 @@ namespace SRTPluginProviderAlice.Structs.Player
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 0xB8C)]
     public struct CKHkAliceHero
     {
-        [FieldOffset(0x4)] internal int _nextPlayer;
+        [FieldOffset(0x4)] private int _nextPlayer;
         [FieldOffset(0x28)] private readonly byte _heroNumber;
-        [FieldOffset(0x68)] private readonly float _posX;
-        [FieldOffset(0x6C)] private readonly float _posY;
-        [FieldOffset(0x70)] private readonly float _posZ;
+        [FieldOffset(0x68)] internal readonly float PositionX;
+        [FieldOffset(0x6C)] internal readonly float PositionY;
+        [FieldOffset(0x70)] internal readonly float PositionZ;
         [FieldOffset(0x9D0)] private readonly int _characterType;
+        public readonly IntPtr NextPlayer => (IntPtr)_nextPlayer;
         public readonly HeroNumber HeroNumber => (HeroNumber)_heroNumber;
-        public readonly float PositionX => _posX;
-        public readonly float PositionY => _posY;
-        public readonly float PositionZ => _posZ;
         public readonly PlayerCharacter CharacterType => (PlayerCharacter)_characterType;
         public readonly string CharacterName
         {

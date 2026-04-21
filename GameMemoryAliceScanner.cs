@@ -15,15 +15,25 @@ namespace SRTPluginProviderAlice
         private GameVersion gameVersion;
         public bool HasScanned;
         public bool ProcessRunning => memoryAccess != null && memoryAccess.ProcessRunning;
-        public uint ProcessExitCode => (memoryAccess != null) ? memoryAccess.ProcessExitCode : 0;
+        public uint ProcessExitCode => memoryAccess != null ? memoryAccess.ProcessExitCode : 0;
 
         // Pointers
         private IntPtr BaseAddress { get; set; }
         private MultilevelPointer PointerGameManager { get; set; }
-        private CKGrpAliceHero heroGroup { get; set; }
-        private CKGrpAliceEnemy enemyGroup { get; set; }
-        private CKAliceGameStructure gameStructure { get; set; }
-        private CKLevel level { get; set; }
+        private CKGrpAliceHero HeroGroup { get; set; }
+        private CKGrpAliceEnemy EnemyGroup { get; set; }
+        private CKAliceGameStructure GameStructure { get; set; }
+        private CKLevel Level { get; set; }
+        private readonly Dictionary<GameVersion, int> BaseAddresses = new()
+        {
+            {
+                GameVersion.PCSteam, 0x44B8A8
+            },
+            {
+                // Polish DVDROM
+                GameVersion.PCDVDROM, 0xAA3948
+            }
+        };
 
         internal GameMemoryAliceScanner(Process? process = null)
         {
@@ -36,19 +46,35 @@ namespace SRTPluginProviderAlice
         {
             if (process == null)
                 return;
-            gameVersion = GameHashes.DetectVersion(process.MainModule?.FileName ?? "");
-            if (gameVersion == GameVersion.Unknown)
-                return;
 
             uint pid = (uint)process.Id;
-            memoryAccess = new ProcessMemoryHandler(pid);
+            this.memoryAccess = new ProcessMemoryHandler(pid);
             if (ProcessRunning)
             {
-                BaseAddress = process?.MainModule?.BaseAddress ?? IntPtr.Zero;
+                this.BaseAddress = process?.MainModule?.BaseAddress ?? IntPtr.Zero;
+                if (this.BaseAddress == IntPtr.Zero)
+                    return;
+
+                if (process?.ProcessName.ToLower().Contains("dolphin") ?? false)
+                {
+                    foreach (MemoryBasicInformation item in process.MemoryPages(true))
+                    {
+                        if (item.Type == MemPageType.MEM_MAPPED && item.AllocationProtect == MemPageProtect.PAGE_READWRITE &&
+                            item.State == MemPageState.MEM_COMMIT && item.Protect == MemPageProtect.PAGE_READWRITE && (int)item.RegionSize == 0x2000000)
+                        {
+                            this.BaseAddress = item.BaseAddress;
+                            break;
+                        }
+                    }
+                }
+
+                this.gameVersion = GameHashes.DetectVersion(process, BaseAddress);
+                if (this.gameVersion == GameVersion.Unknown)
+                    return;
 
                 // TODO: Add Dolphin support
                 // TODO: Add DVDROM support?
-                PointerGameManager = new MultilevelPointer(memoryAccess, (nint*)(BaseAddress + 0x44B8A8), 0x8C);
+                this.PointerGameManager = new MultilevelPointer(this.memoryAccess, (nint*)(this.BaseAddress + this.BaseAddresses[this.gameVersion]), 0x8C);
             }
         }
 
@@ -60,36 +86,36 @@ namespace SRTPluginProviderAlice
         private unsafe void UpdateGeneralInfo()
         {
             CKAliceGameManager gameManager = PointerGameManager.Deref<CKAliceGameManager>(0x0);
-            this.level = memoryAccess.GetAt<CKLevel>((nint*)gameManager._level);
-            this.gameStructure = memoryAccess.GetAt<CKAliceGameStructure>((nint*)gameManager._structure);
-            this.heroGroup = memoryAccess.GetAt<CKGrpAliceHero>((nint*)gameManager._heroGroup);
-            this.enemyGroup = memoryAccess.GetAt<CKGrpAliceEnemy>((nint*)gameManager._enemyGroup);
-            CKAlicePlayer player = memoryAccess.GetAt<CKAlicePlayer>((nint*)gameManager._player2);
+            this.Level = memoryAccess.GetAt<CKLevel>((nint*)gameManager.Level);
+            this.GameStructure = memoryAccess.GetAt<CKAliceGameStructure>((nint*)gameManager.Structure);
+            this.HeroGroup = memoryAccess.GetAt<CKGrpAliceHero>((nint*)gameManager.HeroGroup);
+            this.EnemyGroup = memoryAccess.GetAt<CKGrpAliceEnemy>((nint*)gameManager.EnemyGroup);
+            CKAlicePlayer player = memoryAccess.GetAt<CKAlicePlayer>((nint*)gameManager.Player2);
 
             gameMemoryValues.Map = gameManager.MapType;
-            gameMemoryValues.Sector = this.level.Sector;
+            gameMemoryValues.Sector = this.Level.Sector;
             gameMemoryValues.GameTime = player.GameTime;
         }
 
         private unsafe void UpdatePlayers()
         {
-            IntPtr extraHealthItemPtr = memoryAccess.GetAt<IntPtr>((void*)this.gameStructure.InventoryItemsList);
-            CKAliceInventoryItem extraHealthItem = memoryAccess.GetAt<CKAliceInventoryItem>((void*)extraHealthItemPtr);
-            CKGameLevelCollectible collectible = memoryAccess.GetAt<CKGameLevelCollectible>((void*)extraHealthItem.GameLevelCollectible);
+            IntPtr extraHealthItemPtr = memoryAccess.GetAt<IntPtr>((nint*)this.GameStructure.InventoryItemsList);
+            CKAliceInventoryItem extraHealthItem = memoryAccess.GetAt<CKAliceInventoryItem>((nint*)extraHealthItemPtr);
+            CKGameLevelCollectible collectible = memoryAccess.GetAt<CKGameLevelCollectible>((nint*)extraHealthItem.GameLevelCollectible);
             float maxHealth = collectible.Collected && collectible.Bought ? 200 : 100;
-            List<AliceHero> players = new();
-            IntPtr heroPtr = this.heroGroup.FirstPlayer;
+            List<AliceHero> players = [];
+            IntPtr heroPtr = this.HeroGroup.FirstPlayer;
             while (heroPtr != IntPtr.Zero)
             {
-                CKHkAliceHero hero = memoryAccess.GetAt<CKHkAliceHero>((void*)heroPtr);
+                CKHkAliceHero hero = memoryAccess.GetAt<CKHkAliceHero>((nint*)heroPtr);
                 AliceHero aliceHero = new(hero);
                 if (hero.HeroNumber == HeroNumber.Player1 || hero.HeroNumber == HeroNumber.Player2)
                 {
-                    aliceHero.CurrentHealth = hero.HeroNumber == HeroNumber.Player1 ? this.gameStructure.Player1Health : this.gameStructure.Player2Health;
+                    aliceHero.CurrentHealth = hero.HeroNumber == HeroNumber.Player1 ? this.GameStructure.Player1Health : this.GameStructure.Player2Health;
                     aliceHero.MaxHealth = maxHealth;
                 }
                 players.Add(aliceHero);
-                heroPtr = (IntPtr)hero._nextPlayer;
+                heroPtr = hero.NextPlayer;
             }
             players.Reverse();
             gameMemoryValues.Heroes = players;
@@ -97,18 +123,18 @@ namespace SRTPluginProviderAlice
 
         private unsafe void UpdateEnemies()
         {
-            List<CKHkAliceEnemy> enemies = new();
-            CKGrpFightZone fightZone = memoryAccess.GetAt<CKGrpFightZone>((void*)this.enemyGroup.FightZone);
+            List<CKHkAliceEnemy> enemies = [];
+            CKGrpFightZone fightZone = memoryAccess.GetAt<CKGrpFightZone>((nint*)this.EnemyGroup.FightZone);
             IntPtr squadPtr = fightZone.FirstSquad;
             while (squadPtr != IntPtr.Zero)
             {
-                CKGrpSquad squad = memoryAccess.GetAt<CKGrpSquad>((void*)squadPtr);
+                CKGrpSquad squad = memoryAccess.GetAt<CKGrpSquad>((nint*)squadPtr);
                 IntPtr enemyPtr = squad.FirstEnemy;
                 while (enemyPtr != IntPtr.Zero)
                 {
-                    CKHkAliceEnemy enemy = memoryAccess.GetAt<CKHkAliceEnemy>((void*)enemyPtr);
+                    CKHkAliceEnemy enemy = memoryAccess.GetAt<CKHkAliceEnemy>((nint*)enemyPtr);
                     enemies.Add(enemy);
-                    enemyPtr = (IntPtr)enemy._nextEnemy;
+                    enemyPtr = enemy.NextEnemy;
                 }
                 squadPtr = squad.NextSquad;
             }

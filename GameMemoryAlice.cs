@@ -7,27 +7,16 @@ using SRTPluginProviderAlice.Structs.General;
 
 namespace SRTPluginProviderAlice
 {
-    public class AliceHero
+    public class AliceHero(CKHkAliceHero hero)
     {
-        public HeroNumber HeroNumber { get; }
-        public float CurrentHealth { get; set; }
-        public float MaxHealth { get; set; }
+        public HeroNumber HeroNumber { get; } = hero.HeroNumber;
+        public float CurrentHealth { get; set; } = -1;
+        public float MaxHealth { get; set; } = -1;
         public float Percentage => CurrentHealth <= 0f ? 0f : (CurrentHealth / MaxHealth) * 100;
-        public float PositionX { get; }
-        public float PositionY { get; }
-        public float PositionZ { get; }
-        public PlayerCharacter CharacterType { get; }
-
-        public AliceHero(CKHkAliceHero hero)
-        {
-            HeroNumber = hero.HeroNumber;
-            CurrentHealth = -1;
-            MaxHealth = -1;
-            PositionX = hero.PositionX;
-            PositionY = hero.PositionY;
-            PositionZ = hero.PositionX;
-            CharacterType = hero.CharacterType;
-        }
+        public float PositionX { get; } = hero.PositionX;
+        public float PositionY { get; } = hero.PositionY;
+        public float PositionZ { get; } = hero.PositionX;
+        public PlayerCharacter CharacterType { get; } = hero.CharacterType;
     }
     public class GameMemoryAlice: IGameMemoryAlice
     {
@@ -49,8 +38,8 @@ namespace SRTPluginProviderAlice
         {
             Map = MapType.Loading;
             Sector = 0;
-            _heroes = new List<AliceHero>();
-            _enemies = new List<CKHkAliceEnemy>();
+            _heroes = [];
+            _enemies = [];
         }
     }
 }

@@ -10,7 +10,7 @@
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <Authors>DeathHound6</Authors>
 	  <Company>$(Authors)</Company>
-	  <Copyright>Copyright © 2025 $(Authors)</Copyright>
+	  <Copyright>Copyright © 2026 $(Authors)</Copyright>
 	  <Product>Alice in Wonderland (2010) Memory Provider Plugin</Product>
 	  <Description>A provider plugin for the SRT Host to provide memory values to other plugins.</Description>
 	  <Version>1.0.0.4</Version>
@@ -32,14 +32,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="ProcessMemory32" Version="4.0.7-beta" />
-	  <ProjectReference Include="..\SRTHost\SRTPluginBase\SRTPluginBase.csproj">
-		  <Private>false</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
-	  </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include=".github\workflows\build.yml" />
     <None Include=".github\workflows\release.yml" />
   </ItemGroup>
@@ -50,6 +42,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="63.0.31-preview" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SRTHost\SRTPluginBase\SRTPluginBase.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ProcessMemory32">
+      <HintPath>build\ProcessMemory32.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

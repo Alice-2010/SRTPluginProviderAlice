@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SRTPluginProviderAlice.Structs.Enemy
 {
@@ -15,17 +16,11 @@ namespace SRTPluginProviderAlice.Structs.Enemy
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 0x458)]
     public struct CKHkAliceEnemy
     {
-        [FieldOffset(0x14)] internal readonly int _nextEnemy;
+        [FieldOffset(0x14)] private readonly int _nextEnemy;
         [FieldOffset(0x6C)] private readonly byte _enemyType;
-        [FieldOffset(0x3D0)] private float _health;
-
+        [FieldOffset(0x3D0)] internal readonly float CurrentHealth;
+        public readonly IntPtr NextEnemy => (IntPtr)_nextEnemy;
         public readonly EnemyType EnemyType => (EnemyType)_enemyType;
-
-        public float CurrentHealth
-        {
-            readonly get => _health;
-            set => _health = value;
-        }
         public readonly float MaxHealth => EnemyType switch
         {
             EnemyType.Spearman => 201f,
