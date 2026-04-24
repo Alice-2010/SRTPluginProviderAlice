@@ -73,7 +73,6 @@ namespace SRTPluginProviderAlice
                     return;
 
                 // TODO: Add Dolphin support
-                // TODO: Add DVDROM support?
                 this.PointerGameManager = new MultilevelPointer(this.memoryAccess, (nint*)(this.BaseAddress + this.BaseAddresses[this.gameVersion]), 0x8C);
             }
         }

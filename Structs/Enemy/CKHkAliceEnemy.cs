@@ -14,13 +14,14 @@ namespace SRTPluginProviderAlice.Structs.Enemy
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 0x458)]
-    public struct CKHkAliceEnemy
+    public readonly struct CKHkAliceEnemy
     {
         [FieldOffset(0x14)] private readonly int _nextEnemy;
         [FieldOffset(0x6C)] private readonly byte _enemyType;
-        [FieldOffset(0x3D0)] internal readonly float CurrentHealth;
+        [FieldOffset(0x3D0)] private readonly float _currentHealth;
         public readonly IntPtr NextEnemy => (IntPtr)_nextEnemy;
         public readonly EnemyType EnemyType => (EnemyType)_enemyType;
+        public readonly float CurrentHealth => _currentHealth;
         public readonly float MaxHealth => EnemyType switch
         {
             EnemyType.Spearman => 201f,
