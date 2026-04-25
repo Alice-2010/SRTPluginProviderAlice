@@ -7,11 +7,9 @@ namespace SRTPluginProviderAlice.Structs.General
     public readonly struct CKAliceGameStructure
     {
         [FieldOffset(0x54)] private readonly int _inventoryItemsList;
-        [FieldOffset(0x60)] private readonly float _player1Health;
-        [FieldOffset(0x68)] private readonly float _player2Health;
+        [FieldOffset(0x60)] internal readonly float Player1Health;
+        [FieldOffset(0x68)] internal readonly float Player2Health;
         public readonly IntPtr InventoryItemsList => (IntPtr)_inventoryItemsList;
-        public readonly float Player1Health => _player1Health;
-        public readonly float Player2Health => _player2Health;
 
     }
 }

@@ -7,7 +7,7 @@ namespace SRTPluginProviderAlice.Structs.General
     {
         [FieldOffset(0x1C)] private readonly byte _collected;
         [FieldOffset(0x1D)] private readonly byte _bought;
-        public bool Collected => _collected == 1;
-        public bool Bought => _bought == 1;
+        public readonly bool Collected => _collected == 1;
+        public readonly bool Bought => _bought == 1;
     }
 }
