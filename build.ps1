@@ -5,13 +5,13 @@
 
 $platform = $args[0]
 if ($platform -ne "x64" -and $platform -ne "x86") {
-	Write-Host "Platform must be x64 or x86. Received $platform"
+	Write-Host "Platform must be 'x64' or 'x86'. Received $platform"
 	exit 1
 }
 
 $conf = $args[1]
 if ($conf -ne "Debug" -and $conf -ne "Release") {
-	Write-Host "Configuration must be Debug or Release. Received $conf"
+	Write-Host "Configuration must be 'Debug' or 'Release'. Received $conf"
 	exit 1
 }
 
